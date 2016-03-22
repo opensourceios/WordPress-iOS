@@ -186,13 +186,6 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
         [self showNoInternetAlertView];
         return;
     }
-
-    BOOL hasCookies = [WPCookie hasCookieForURL:self.url andUsername:self.username];
-    if (self.url.isWordPressDotComUrl && !self.needsLogin && self.hasCredentials && !hasCookies) {
-        DDLogWarn(@"WordPress.com URL: We have login credentials but no cookie, let's try login first");
-        [self retryWithLogin];
-        return;
-    }
     
     NSURLRequest *request = [self newRequestForWebsite];
     NSAssert(request, @"We should have a valid request here!");
@@ -344,28 +337,27 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
-    DDLogInfo(@"%@ Should Start Loading [%@]", NSStringFromClass([self class]), request.URL.absoluteString);
+    DDLogInfo(@"%@ Decide Policy for Navigation [%@]", NSStringFromClass([self class]), navigationAction.request.URL.absoluteString);
     
     // WP Login: Send the credentials, if needed
-    NSRange loginRange  = [request.URL.absoluteString rangeOfString:@"wp-login.php"];
-    BOOL isLoginURL     = loginRange.location != NSNotFound;
+    NSURLRequest *request   = navigationAction.request;
+    NSRange loginRange      = [request.URL.absoluteString rangeOfString:@"wp-login.php"];
+    BOOL isLoginURL         = loginRange.location != NSNotFound;
     
     if (isLoginURL && !self.needsLogin && self.hasCredentials) {
         DDLogInfo(@"WP is asking for credentials, let's login first");
+        decisionHandler(WKNavigationActionPolicyCancel);
         [self retryWithLogin];
-        return NO;
+        return;
     }
     
-    //  Note:
-    //  UIWebView callbacks will get hit for every frame that gets loaded. As a workaround, we'll consider
-    //  we're in a "loading" state just for the Top Level request.
-    //
-    if ([request.mainDocumentURL isEqual:request.URL]) {
-        self.loading = YES;
-        [self refreshInterface];
-    }
+    decisionHandler(WKNavigationActionPolicyAllow);
+    [self refreshInterface];
+}
+
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler {
+    decisionHandler(WKNavigationResponsePolicyAllow);
     
-    return YES;
 }
 
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(null_unspecified WKNavigation *)navigation
@@ -449,6 +441,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
         components.path             = @"/wp-login.php";
         loginURL                    = components.URL;
     }
+                
     return [WPURLRequest requestForAuthenticationWithURL:loginURL
                                              redirectURL:self.url
                                                 username:self.username
