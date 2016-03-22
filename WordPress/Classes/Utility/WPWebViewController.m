@@ -49,7 +49,6 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 @property (nonatomic, strong) NavigationTitleView           *titleView;
 @property (nonatomic, strong) WKWebView                     *webView;
-@property (nonatomic, assign) BOOL                          loading;
 @property (nonatomic, assign) BOOL                          needsLogin;
 
 @end
@@ -109,7 +108,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     self.webView.navigationDelegate         = self;
     [self.webView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [self.containerView addSubview:self.webView];
-    [self.containerView pinSubviewToAllEdges:self.webView];;
+    [self.containerView pinSubviewToAllEdges:self.webView];
 
     // Fire away!
     [self applyModalStyleIfNeeded];
@@ -211,9 +210,9 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 {
     self.backButton.enabled             = self.webView.canGoBack;
     self.forwardButton.enabled          = self.webView.canGoForward;
-    self.optionsButton.enabled          = !self.loading;
+    self.optionsButton.enabled          = self.webView.isLoading;
     
-    if (self.loading) {
+    if (self.webView.isLoading) {
         return;
     }
     
@@ -371,12 +370,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 - (void)webViewDidStartLoad:(UIWebView *)aWebView
 {
-    DDLogInfo(@"%@ Started Loading [%@]", NSStringFromClass([self class]), aWebView.request.URL);
-    
-    // Bypass if we're not loading the "Main Document"
-    if (!self.loading) {
-        return;
-    }
+    DDLogInfo(@"%@ Started Loading [%@]", NSStringFromClass([self class]), webView.URL);
     
     [self startProgress];
 }
@@ -385,14 +379,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 {
     DDLogInfo(@"%@ Error Loading [%@]", NSStringFromClass([self class]), error);
     
-    // Bypass if we're not loading the "Main Document"
-    if (!self.loading) {
-        return;
-    }
-    
     // Refresh the Interface
-    self.loading = NO;
-    
     [self finishProgress];
     [self refreshInterface];
 
@@ -407,13 +394,6 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 - (void)webViewDidFinishLoad:(UIWebView *)aWebView
 {
     DDLogInfo(@"%@ Finished Loading [%@]", NSStringFromClass([self class]), webView.URL);
-    
-    // Bypass if we're not loading the "Main Document"
-    if (!self.loading) {
-        return;
-    }
-    
-    self.loading = NO;
     
     [self finishProgress];
     [self refreshInterface];
