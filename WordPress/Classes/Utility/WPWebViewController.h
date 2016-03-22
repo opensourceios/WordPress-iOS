@@ -4,7 +4,7 @@
 
 #pragma mark - WPWebViewController
 
-@interface WPWebViewController : UIViewController<UIWebViewDelegate>
+@interface WPWebViewController : UIViewController
 
 /**
  *	@brief		Represents the Endpoint URL to render

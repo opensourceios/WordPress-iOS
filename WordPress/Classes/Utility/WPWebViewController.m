@@ -34,21 +34,22 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 #pragma mark - Private Properties
 
-@interface WPWebViewController () <UIWebViewDelegate>
+@interface WPWebViewController () <WKNavigationDelegate>
 
-@property (nonatomic,   weak) IBOutlet UIWebView                *webView;
-@property (nonatomic,   weak) IBOutlet UIProgressView           *progressView;
-@property (nonatomic, strong) IBOutlet UIBarButtonItem          *dismissButton;
-@property (nonatomic, strong) IBOutlet UIBarButtonItem          *optionsButton;
+@property (nonatomic,   weak) IBOutlet UIView               *containerView;
+@property (nonatomic,   weak) IBOutlet UIProgressView       *progressView;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem      *dismissButton;
+@property (nonatomic, strong) IBOutlet UIBarButtonItem      *optionsButton;
 
-@property (nonatomic,   weak) IBOutlet UIToolbar                *toolbar;
-@property (nonatomic,   weak) IBOutlet UIBarButtonItem          *backButton;
-@property (nonatomic,   weak) IBOutlet UIBarButtonItem          *forwardButton;
-@property (nonatomic,   weak) IBOutlet NSLayoutConstraint       *toolbarBottomConstraint;
+@property (nonatomic,   weak) IBOutlet UIToolbar            *toolbar;
+@property (nonatomic,   weak) IBOutlet UIBarButtonItem      *backButton;
+@property (nonatomic,   weak) IBOutlet UIBarButtonItem      *forwardButton;
+@property (nonatomic,   weak) IBOutlet NSLayoutConstraint   *toolbarBottomConstraint;
 
-@property (nonatomic, strong) NavigationTitleView               *titleView;
-@property (nonatomic, assign) BOOL                              loading;
-@property (nonatomic, assign) BOOL                              needsLogin;
+@property (nonatomic, strong) NavigationTitleView           *titleView;
+@property (nonatomic, strong) WKWebView                     *webView;
+@property (nonatomic, assign) BOOL                          loading;
+@property (nonatomic, assign) BOOL                          needsLogin;
 
 @end
 
@@ -59,7 +60,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 - (void)dealloc
 {
-    _webView.delegate = nil;
+    _webView.navigationDelegate = nil;
     if (_webView.isLoading) {
         [_webView stopLoading];
     }
@@ -96,9 +97,6 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     self.backButton.tintColor               = [WPStyleGuide greyLighten10];
     self.forwardButton.tintColor            = [WPStyleGuide greyLighten10];
     self.toolbarBottomConstraint.constant   = WPWebViewToolbarHiddenConstant;
-    
-    // WebView
-    self.webView.scalesPageToFit            = YES;
     
     // Share
     if (!self.secureInteraction) {
@@ -152,7 +150,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 - (NSString *)documentPermalink
 {
-    NSString *permaLink = self.webView.request.URL.absoluteString;
+    NSString *permaLink = self.webView.URL.absoluteString;
 
     // Make sure we are not sharing URL like this: http://en.wordpress.com/reader/mobile/?v=post-16841252-1828
     if ([permaLink rangeOfString:@"wordpress.com/reader/mobile/"].location != NSNotFound) {
@@ -164,8 +162,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 - (NSString *)documentTitle
 {
-    NSString *title = [self.webView stringByEvaluatingJavaScriptFromString:@"document.title"];
-
+    NSString *title = self.webView.title;
     if (title != nil && [[title trim] isEqualToString:@""] == NO) {
         return title;
     }
@@ -213,7 +210,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     }
     
     self.titleView.titleLabel.text      = [self documentTitle];
-    self.titleView.subtitleLabel.text   = self.webView.request.URL.host;
+    self.titleView.subtitleLabel.text   = self.webView.URL.host;
 }
 
 - (void)scrollToBottomIfNeeded
@@ -401,7 +398,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 - (void)webViewDidFinishLoad:(UIWebView *)aWebView
 {
-    DDLogInfo(@"%@ Finished Loading [%@]", NSStringFromClass([self class]), aWebView.request.URL);
+    DDLogInfo(@"%@ Finished Loading [%@]", NSStringFromClass([self class]), webView.URL);
     
     // Bypass if we're not loading the "Main Document"
     if (!self.loading) {
