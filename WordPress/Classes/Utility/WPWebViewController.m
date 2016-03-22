@@ -342,7 +342,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 
 #pragma mark - UIWebViewDelegate
 
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
     DDLogInfo(@"%@ Should Start Loading [%@]", NSStringFromClass([self class]), request.URL.absoluteString);
     
@@ -368,14 +368,14 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     return YES;
 }
 
-- (void)webViewDidStartLoad:(UIWebView *)aWebView
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(null_unspecified WKNavigation *)navigation
 {
     DDLogInfo(@"%@ Started Loading [%@]", NSStringFromClass([self class]), webView.URL);
     
     [self startProgress];
 }
 
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error
+- (void)webView:(WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error
 {
     DDLogInfo(@"%@ Error Loading [%@]", NSStringFromClass([self class]), error);
     
@@ -391,7 +391,7 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     [self displayLoadError:error];
 }
 
-- (void)webViewDidFinishLoad:(UIWebView *)aWebView
+- (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation
 {
     DDLogInfo(@"%@ Finished Loading [%@]", NSStringFromClass([self class]), webView.URL);
     
