@@ -103,6 +103,13 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     if (!self.secureInteraction) {
         self.navigationItem.rightBarButtonItem  = self.optionsButton;
     }
+    
+    // WKWebView
+    self.webView                            = [WKWebView new];
+    self.webView.navigationDelegate         = self;
+    [self.webView setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [self.containerView addSubview:self.webView];
+    [self.containerView pinSubviewToAllEdges:self.webView];;
 
     // Fire away!
     [self applyModalStyleIfNeeded];
