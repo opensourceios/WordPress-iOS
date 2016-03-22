@@ -13,6 +13,7 @@
 #import "WPStyleGuide+WebView.h"
 #import "WordPress-Swift.h"
 
+#import <WebKit/WebKit.h>
 
 
 #pragma mark - Constants
@@ -70,15 +71,15 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
 {
     [super viewDidLoad];
 
-    NSAssert(_webView,                 @"Missing Outlet!");
-    NSAssert(_progressView,            @"Missing Outlet!");
-    NSAssert(_dismissButton,           @"Missing Outlet!");
-    NSAssert(_optionsButton,           @"Missing Outlet!");
+    NSParameterAssert(_containerView);
+    NSParameterAssert(_progressView);
+    NSParameterAssert(_dismissButton);
+    NSParameterAssert(_optionsButton);
     
-    NSAssert(_toolbar,                 @"Missing Outlet!");
-    NSAssert(_backButton,              @"Missing Outlet!");
-    NSAssert(_forwardButton,           @"Missing Outlet!");
-    NSAssert(_toolbarBottomConstraint, @"Missing Outlet!");
+    NSParameterAssert(_toolbar);
+    NSParameterAssert(_backButton);
+    NSParameterAssert(_forwardButton);
+    NSParameterAssert(_toolbarBottomConstraint);
     
     // TitleView
     self.titleView                          = [NavigationTitleView new];
