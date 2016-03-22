@@ -255,6 +255,11 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     }];
 }
 
+- (void)displayLoadError:(NSError *)error
+{
+    [WPError showAlertWithTitle:NSLocalizedString(@"Error", nil) message:error.localizedDescription];
+}
+
 
 #pragma mark - Properties
 
@@ -390,11 +395,6 @@ static CGFloat const WPWebViewAnimationAlphaHidden          = 0.0;
     }
 
     [self displayLoadError:error];
-}
-
-- (void)displayLoadError:(NSError *)error
-{
-    [WPError showAlertWithTitle:NSLocalizedString(@"Error", nil) message:error.localizedDescription];
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)aWebView
